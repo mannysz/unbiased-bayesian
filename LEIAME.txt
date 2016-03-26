@@ -1,0 +1,251 @@
+Por Wagner Saback Dantas (wagners em aquare la)
+Criado em 20140415
+Atualizado em 20140607
+
+O quê: informações sobre a instalação e o uso do módulo spinver-analyzer
+(Projeto Spinver).
+
+
+= Instalação =
+
+Requisitos:
+
+  a) Java SE. Testado com o Java 7 (1.7.0_55);
+
+  b) Banco MySQL do Spinver implantado e devidamente alimentado pelo módulo
+     spinver-crawler.
+
+Procedimentos:
+
+1) Desempacote o 'tarball':
+
+  tar xzf spinver-vAAAAMMDD.tgz
+
+Será criado o diretório spinver-vAAAAMMDD com os seguintes arquivos:
+
+  spinver-analyzer.jar (aplicação Java do analisado spinver-analyzer)
+  app.properties       (arquivo de configuração do spinver-analyzer)
+  lang                 (modelos linguísticos utilizados pelo spinver-analyzer
+
+2) Edite o arquivo de configuração e execute (vide seção a seguir para mais
+detalhes).
+
+
+
+= Uso =
+
+Edite o arquivo de configuração "app.properties". Opções de configuração:
+
+- spinver.interactive: modo de execução do spinver-analyzer, interativo (true)
+  ou não interativo (false). 
+
+  No modo interativo, o usuário deve executar o analisador passando como
+  parâmetro um texto entre aspas, representando o conteúdo de um 'post'.
+  Exemplo:
+
+    cd <dir_do_spinver-analyzer>
+    java -jar spinver-analyzer.jar "tô vendendo duas motos, alguém a fim?"
+
+  Saída:
+
+    texto de entrada: tô vendendo duas motos, alguém a fim?
+    
+    [SELL] tô vendendo duas motos, alguém a fim?
+
+  No modo não interativo, o analisador buscará os textos que servirão de entrada
+  da análise a partir do banco de dados do Spinver (banco MySQL, vide opções
+  spinver.mysql.* para mais detalhes). Exemplo:
+
+    cd <dir_do_spinver-analyzer>
+    java -jar spinver-analyzer.jar
+
+  Saída: arquivo de 'log' (vide opção spinver.logdir para mais detalhes).
+
+- spinver.dbpersistence: indica se o resultado da análise é registrado (ou
+  não) em banco de dados.
+
+- spinver.logdir: diretório de 'log' do spinver-analyzer, somente utilizado
+  quando spinver.interactive=true. Se não especificado, assume o diretório
+  temporário padrão do sistema operacional (e.g., nos sistemas Unix-like, o
+  diretório /tmp) 
+
+  Padrão do nome do arquivo de 'log': "spinver_<timestamp>.log"
+
+- spinver.timeout: em modo não interativo, denota quanto tempo em segundos o
+  analisador deve esperar antes de verificar se há (ou não) alguma atualização
+  no banco de dados, tipicamente, na tabela facebook_post ou, quando
+  especificado, na tabela informada pelo parâmetro spinver.mysql.source.table
+  (mais informações sobre o parâmetro spinver.mysql.source.table a seguir).
+  Valor 'default': 2 segundos;
+
+- spinver.interval: valor numérico que indica o período histórico de interesse
+  (em dias) para a análise. Por exemplo, spinver.interval=5 significa que o
+  analisador considera as postagens de 5 dias atrás até a data corrente;
+
+- spinver.itens.dict, spinver.models.dict, spinver.versions.dict:
+	respectivamente, informam quais são os arquivos de dicionário locais a serem
+	usados pelo analisador. Em modo não interativo, desativa o recurso de
+	registro em banco de dados (spinver.dbpersistence=false) se algum
+  dicionário local for usado;
+
+- spinver.mysql.*: compreende as opções de configuração de acesso ao banco
+  MySQL do spinver-analyzer, utilizadas somente quando
+  spinver.interactive=true. São elas:
+
+    spinver.mysql.host=servidor.do.banco.de.dados
+    spinver.mysql.dbname=nome.do.banco
+    spinver.mysql.user=usuario.do.banco
+    spinver.mysql.password=senha.do.usuario.do.banco
+    spinver.mysql.source.table=tabela.com.os.dados.no.banco
+
+= Observações =
+
+Segue uma lista não exaustiva das características conhecidas do analisador,
+inclusive suas limitações:
+
+1) No 'parsing', o analisador reconhece expressões de compra/venda uni ou
+polilexicais de tamanho variável.  Essas expressões estão definidas
+diretamente em código-fonte, na classe "la.aquare.spinver.lang.dict.Actions".
+Em comum, todas elas contém um verbo, podendo ser um unigrama (e.g., "vendo"),
+bigrama ("estou comprando", "preciso de"), trigrama ("estou querendo comprar",
+"tô tentando vender", "alguém tem aí"), etc.
+   
+As expressões de compra/venda são identificadas no contexto de uma *Frase*,
+definida aqui simplificadamente como uma sequência de unidades lexicais
+separadas por espaço, tipicamente finalizada por um sinal de pontuação.
+Por outro lado, o conceito de Frase que se adota aqui pode coincidir com a
+ideia de frase como um enunciado que veicula um sentido completo, seja esse 
+enunciado referente a uma declaração afirmativa, interrogativa, etc.
+
+No processo de 'parsing', considera-se a Frase (nos termos definidos aqui)
+como a primeira unidade de análise dentro de um 'post', ou seja, para cada
+frase, o analisador identificará se há uma oferta de compra, venda ou ambos.
+
+Assim, na versão atual do analisador, a partir de um mesmo 'post' podem ser
+identificadas zero, uma ou mais ofertas de compra/venda de produtos de
+interesse. No entanto, em função do esquema de banco de dados utilizado
+atualmente para o Spinver, somente a última oferta identificada para um mesmo
+'post' é gravada no banco de dados (tabela facebook_post, coluna id_offer).
+
+Em geral, uma Frase é um n-grama de tamanho N = m + k, onde:
+
+  m: tamanho do n-grama referente à expressão de compra/venda, em que m > 0
+
+  k: comprimento máximo da cadeia lexical após a expressão de compra/venda,
+     em que 0 < k < Matcher.NGRAM_MAX_SIZE - 1 (vide classe
+     la.aquare.spinver.lang.Matcher). Atualmente, o valor adotado para
+     Matcher.NGRAM_MAX_SIZE é fixo e igual a 7. 
+
+Significa que, além do n-grama contendo a expressão de compra/venda, o
+analisador considera adicionalmente como parte de sua janela de análise as
+próximas 6 unidades lexicais ("palavras") separadas por espaço. Dentro dessa
+subsequência com até 6 unidades lexicais, o analisador tenta identificar alguns
+padrões de nome de produto conforme seu dicionário de termos. De forma geral,
+um nome de produto respeita o seguinte padrão:
+
+  NomeDoItem [AtributoDeVersão] [[AtributoDeModelo1 [, AtributoDeModelo2 [..., AtributoDeModeloN]]]
+
+Ou seja: o nome do item seguido, opcionalmente, por um atributo de versão, que
+é seguida, por sua vez, por um ou mais atributos de modelo.
+
+
+2) Algumas facetas do processo de 'parsing' do analisador:
+
+2.1) O analisador NÃO reconhece expressões de ação de compra/venda que sejam
+subcadeias de outros termos (e.g., não reconhece "vendo" na frase "vendoesse
+telefone agora").
+
+2.2) O analisador reconhece a presença das ações de compra e venda numa mesma
+frase em estruturas como "compro ou vendo xxxx".
+
+2.3) O analisador ignora alguns caracteres não alfanuméricos (vírgulas, dois
+pontos, exclamação, ponto, entre outros) que tanto podem estar justapostos ao
+verbo como podem estar entre o verbo e o objeto. Exemplo:
+
+  vendo! iphone 4
+  vendo, iphone 4
+  compro: xbox zerado
+
+2.4) Ainda em relação ao 'parsing', no que tange à cadeia lexical após uma
+expressão de compra/venda previamente reconhecida, o analisador:
+
+  (a) quando somente há 1 objeto de compra/venda, considera que seu nome pode
+      ser simples ou composto. No caso dos nomes compostos, podem ser separados por
+      hífen (de qualquer tamanho a princípio) ou separados por espaço (no
+      máximo, um trigrama, um polilexical com 3 unidades lexicais separadas por
+      espaço);
+  
+  (b) NÃO captura referência por anáfora, estando o elemento referenciador
+      preenchido (e.g., compro xbox e vendo ele também) ou não (e.g., compro
+      xbox e vendo também).
+
+2.5) O analisador consegue identificar diferentes objetos envolvidos numa mesma
+ação de compra/venda. Tipicamente em casos contendo somente os nomes dos
+produtos, sem especificação de atributo (modelo ou versão) e separados por um
+conector ("e" ou "ou"). Por exemplo:
+
+  (i) vendo xbox e ps2
+  (ii) compro iphone ou galaxy ou blackberry
+
+Ou, então, nos casos em que os atributos (versão/modelo) que acompanham o nome
+dos produtos envolvidos na lista coincidam com alguns termos precedentes ao nome
+tolerados pelo analisador (e.g., dígitos numéricos):
+
+  (iii) vendo iphone 5 e xbox 360
+  (iv) compro iphone 4 ou galaxy s3
+
+Nas frases (iii) e (iv), os termos tolerados, que também são atributos de
+versão/modelo dos produtos, foram: "5" (de "iphone 5") e "4" (de "iphone 4").
+
+No entanto, há casos similares contendo mais de 1 objeto envolvido na
+compra/venda que NÃO são contemplados pelo analisador. Seguem alguns exemplos
+em que o analisador consegue capturar algum ou nenhum dos objetos citados:
+
+  (v) Vendo Controle para PS3 e PS4 novo lacrado original sony
+
+Na frase (v), considera-se que os objetos são "controle para PS3" e "controle
+para PS4", não "controle para PS3" e "PS4". Resultado: nenhum objeto é
+identificado.
+
+  (vi) Vendo PS4 e controle para PS3 novo lacrado original sony
+
+Por outro lado, na frase (vi), o primeiro objeto ("PS4") é identificado, e o
+segundo ("controle para PS3") é descartado.
+
+A frase (vii), a seguir, contém um mesmo nome de produto seguido de diferentes
+possibilidades de versão:
+ 
+  (vii) Vendo iphones 4 4s 5 5c e 5s
+
+Nesse caso, o analisador consegue capturar somente a primeira informação de
+versão na sequência. Ou seja, somente o objeto "iphone 4" é identificado, os
+demais são ignorados.
+
+Já a frase (viii) expressa uma mesma ação de compra sobre dois produtos de
+nome igual mas com atributos de versão diferentes:
+
+  Compro iphone 5s ou iphone 4
+
+O resultado da análise para essa frase é semelhante ao exemplo da frase (vii).
+O analisador considera somente o primeiro produto com sua respectiva versão
+mencionada ("iphone 5s") descartando o segundo ("iphone 4").
+
+3) Algumas facetas da execução do analisador quando em modo não interativo:
+
+3.1) O analisador funciona em um 'thread' simples, esperando ser notificada
+por uma segunda 'thread' mediante atualizações no banco de dados (por
+'default', na tabela facebook_post ou noutra definida em
+spinver.mysql.source.table). 
+
+3.2) Quando spinver.dbpersistence=true (registro das ofertas em banco de
+dados), o analisador:
+
+  (a) NÃO considera ofertas duplicadas, ou seja, um mesmo produto + atributos
+  oferecido por um mesmo indivíduo (id_advertiser) em uma janela de 1 dia
+  (data no fuso horário GMT-0, tal como no campo created_time do JSON obtido via
+  API do Facebook e armazenado em facebook_post.data);
+  
+  (b) somente registra a oferta de compra nos casos em que, para uma mesma
+  Frase, forem identificadas ambas as ofertas de compra e venda. 
+
+
