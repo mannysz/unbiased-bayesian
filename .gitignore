@@ -1,6 +1,6 @@
-.classpath
-.project
-.settings
-.vagrant
-deploy/
-target/
+*.pyc
+__pycache__
+*.swo
+*.swp
+venv
+.env
