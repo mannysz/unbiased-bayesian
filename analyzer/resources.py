@@ -1,7 +1,5 @@
 import falcon
 
-from analyzer.exceptions import AnalyzerError
-
 
 class BaseResource(object):
     """
@@ -12,21 +10,6 @@ class BaseResource(object):
 
     def __init__(self, analyzer_obj):
         self.analyzer = analyzer_obj
-
-    def on_get(self, req, resp):
-        raise AnalyzerError("Not implemented!")
-
-    def on_post(self, req, resp):
-        raise AnalyzerError("Not implemented!")
-
-    def on_patch(self, req, resp):
-        raise AnalyzerError("Not implemented!")
-
-    def on_put(self, req, resp):
-        raise AnalyzerError("Not implemented!")
-
-    def on_delete(self, req, resp):
-        raise AnalyzerError("Not implemented!")
 
 
 class FeatureResource(BaseResource):
@@ -75,12 +58,49 @@ class FeatureDetailResource(BaseResource):
 
 
 class TrainResource(BaseResource):
-    pass
+
+    def __init__(self, analyzer):
+        super().__init__(analyzer)
+
+    def on_post(self, req, resp):
+        body = req.context.get('body', False)
+        if not body or 'sentence' not in body.keys()\
+           or 'labels' not in body.keys():
+            raise falcon.HTTPError(falcon.HTTP_400,
+                                   'Bad Request',
+                                   'Missing "sentence" or '
+                                   '"labels"  attributes!')
+        sentence = body.get('sentence')
+        labels = body.get('labels')
+        self.analyzer.train(sentence, labels)
+        resp.status = falcon.HTTP_202
 
 
 class ClassifyResource(BaseResource):
-    pass
+
+    def __init__(self, analyzer):
+        super().__init__(analyzer)
+
+    def on_post(self, req, resp):
+        body = req.context.get('body', False)
+        if not body or 'sentence' not in body.keys():
+            raise falcon.HTTPError(falcon.HTTP_400,
+                                   'Bad Request',
+                                   'Missing "Sentence" attribute!')
+
+        sentence = body.get('sentence')
+        result = self.analyzer.classify(sentence)
+        req.context['result'] = {
+            "objects": result
+        }
+        resp.status = falcon.HTTP_200
 
 
 class BuildResource(BaseResource):
-    pass
+
+    def __init__(self, analyzer):
+        super().__init__(analyzer)
+
+    def on_get(self, req, resp):
+        self.analyzer.build()
+        resp.status = falcon.HTTP_202
