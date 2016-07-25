@@ -1,1 +1,1 @@
-web: gunicorn spinver.wsgi:application --workers 4 -b :$PORT -k tornado -t 0
+web: gunicorn wsgi:api --workers 4 -b :$PORT
