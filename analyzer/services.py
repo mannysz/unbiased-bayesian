@@ -66,8 +66,14 @@ class Analyzer(object):
         """
         Removes the given feature set.
         """
-        if fset in self.feature_set.keys():
-            del self.feature_set[fset]
+        if fset in self.feature_sets.keys():
+            del self.feature_sets[fset]
+
+    def list_feature_sets(self):
+        """
+        Lists all features registered in feature_sets.
+        """
+        return self.feature_sets.keys()
 
     def train(self, sentence, feature_labels):
         """

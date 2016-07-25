@@ -25,6 +25,7 @@ $ pip install -r requirements.txt
 Declare the following environment variables before running any task on analyzer service:
 
 - ANALYZER_DATA: Absolute path for data file (created if not exists on service bootstrap).
+- API_KEY: Salted API Key that will authorize external services call the analyzer endpoints.
 
 Create a file named .env in the root project folder exporting the environment variables to avoid
 environment clashing running foreman or honcho, and load it with "source" everytime you need to
