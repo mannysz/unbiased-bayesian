@@ -2,8 +2,7 @@
 
 In order to run the analyzer service, you should pre-install the following software.
 
-- Python 3.4+
-- Python-Dev
+- Python 3.5+
 - Foreman (the ruby gem) or Honcho (the python package) if you are running in development environment
 - Virtualenv
 
@@ -27,9 +26,16 @@ Declare the following environment variables before running any task on analyzer 
 - ANALYZER_DATA: Absolute path for data file (created if not exists on service bootstrap).
 - API_KEY: Salted API Key that will authorize external services call the analyzer endpoints.
 
-Create a file named .env in the root project folder exporting the environment variables to avoid
+Create a file named `.env` in the root project folder exporting the environment variables to avoid
 environment clashing running foreman or honcho, and load it with "source" everytime you need to
 run it locally or on command line.
+
+Example `.env` file:
+
+```
+ANALYZER_DATA=data
+API_KEY=123456789
+```
 
 ## Running the Service
 
