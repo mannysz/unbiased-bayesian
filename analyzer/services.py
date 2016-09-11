@@ -41,7 +41,7 @@ class Analyzer(object):
                             user.
         """
         self.data = data_path
-        self.feature_sets = {'word_features': set()}
+        self.feature_sets = {}
         self.tokenizer = RegexpTokenizer('\w+|\$[\d\.]+|\S+')
         try:
             self._load()
@@ -98,7 +98,7 @@ class Analyzer(object):
                 fset = self.feature_sets[feat]
                 fset['word_features'] = fset['word_features'] or set()
                 # merge words from document to feature word_features
-                fset['word_features'].union(document)
+                fset['word_features'] = fset['word_features'].union(document)
                 # classify the document with given label on this feature
                 labeled_doc = (document, feature_labels[feat])
                 # add document to feature documents.
