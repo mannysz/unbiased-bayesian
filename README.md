@@ -1,6 +1,6 @@
-# Analyzer Service
+# Bayesian Classifier Text Tagging
 
-In order to run the analyzer service, you should pre-install the following software.
+In order to run the text tagging service, you should pre-install the following software.
 
 - Python 3.5+
 - Foreman (the ruby gem) or Honcho (the python package) if you are running in development environment
