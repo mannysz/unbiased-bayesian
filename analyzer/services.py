@@ -182,12 +182,14 @@ class Analyzer(object):
         word_dict = defaultdict(int)
         # iterate over all words and count them
         for word in words:
-            word_dict[word] += 1
+            word_dict[word.lower()] += 1
         # ignore all words with low occurrence
         cleaned_words = []
         for key in word_dict:
-            if math.log(word_dict[key]) >= 1:
+            if math.log(word_dict[key]) > 0:
                 cleaned_words.append(key)
+        print("Cleaned Words: ")
+        print(cleaned_words)
         return set(cleaned_words)
 
     def _process_sentence(self, sentence):

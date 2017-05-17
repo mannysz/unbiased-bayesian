@@ -1,5 +1,4 @@
 import os
-import random
 from analyzer.services import Analyzer
 
 data_dir = os.getenv('ANALYZER_DATA')
@@ -40,12 +39,10 @@ if __name__ == '__main__':
                 print(train_data)
                 train_set.append((content, train_data))
 
-    # agora que temos um set de treino, podemos treinar o analizador
     for data in train_set:
         sentence, feature_labels = data
         an.train(sentence, feature_labels)
 
-    # e compliar a maquina treinada
     an.build()
 
     print("Done!")
