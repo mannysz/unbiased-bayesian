@@ -1,6 +1,8 @@
 import os
 import string
 import pickle
+import math
+from collections import defaultdict
 from nltk.classify.naivebayes import NaiveBayesClassifier
 from nltk.tokenize import RegexpTokenizer
 
@@ -177,8 +179,16 @@ class Analyzer(object):
         """
         # get all words on the sentence
         words = set(self.tokenizer.tokenize(document))
-        # word_features.union(words)
-        return words
+        word_dict = defaultdict(int)
+        # iterate over all words and count them
+        for word in words:
+            word_dict[word] += 1
+        # ignore all words with low occurrence
+        cleaned_words = []
+        for key in word_dict:
+            if math.log(word_dict[key]) >= 1:
+                cleaned_words.append(key)
+        return set(cleaned_words)
 
     def _process_sentence(self, sentence):
         """
