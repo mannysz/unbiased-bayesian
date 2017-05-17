@@ -188,8 +188,6 @@ class Analyzer(object):
         for key in word_dict:
             if math.log(word_dict[key]) > 0:
                 cleaned_words.append(key)
-        print("Cleaned Words: ")
-        print(cleaned_words)
         return set(cleaned_words)
 
     def _process_sentence(self, sentence):
