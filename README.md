@@ -1,6 +1,9 @@
-# Bayesian Classifier Text Tagging
+# Unbiased Bayesian
+This project is a small proof of concept to help people kickstart and use 
+a baive bayesian algorithms and natural language processing to identify
+texts, sentiments, and document types based on its content.
 
-In order to run the text tagging service, you should pre-install the following software.
+To run it as a web service, you should pre-install the following software.
 
 - Python 3.5+
 - Foreman (the ruby gem) or Honcho (the python package) if you are running in development environment
@@ -24,7 +27,7 @@ $ pip install -r requirements.txt
 Declare the following environment variables before running any task on analyzer service:
 
 - ANALYZER_DATA: Absolute path for data file (created if not exists on service bootstrap).
-- API_KEY: Salted API Key that will authorize external services call the analyzer endpoints.
+- API_KEY: Salted API Key that will authorize external services call the analyzer and classifier endpoints.
 
 Create a file named `.env` in the root project folder exporting the environment variables to avoid
 environment clashing running foreman or honcho, and load it with "source" everytime you need to
@@ -34,7 +37,7 @@ Example `.env` file:
 
 ```
 ANALYZER_DATA=data
-API_KEY=123456789
+API_KEY=[API key to be used by requests]
 ```
 
 ## Running the Service
