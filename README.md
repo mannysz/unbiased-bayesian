@@ -1,7 +1,7 @@
 # Unbiased Bayesian
 This project is a small proof of concept to help people kickstart and use 
-a baive bayesian algorithms and natural language processing to identify
-texts, sentiments, and document types based on its content.
+a naive bayesian classifiers and natural language processing to identify
+text sentiment based on its content.
 
 To run it as a web service, you should pre-install the following software.
 
